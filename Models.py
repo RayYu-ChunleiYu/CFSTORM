@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Float, String, ForeignKey
+from sqlalchemy import Column, Integer, Float, String, ForeignKey,UniqueConstraint
 from sqlalchemy.orm import relationship,declarative_base
 from sqlalchemy.dialects.postgresql import JSONB
 
@@ -8,42 +8,47 @@ class Experiment(Base):
     __tablename__ = 'experiment'
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    specimen_id = Column(Integer, ForeignKey('specimen.id'))
-    specimen = relationship("Specimen", back_populates="experiment")
+    specimen_id = Column(Integer)
     
     load_pattern = Column(JSONB)
     data = Column(JSONB)
     
-    source_id = Column(Integer, ForeignKey('source.id'))
-    source = relationship("Source", back_populates="experiment")
+    source_id = Column(Integer)
+    
+    __table_args__ = (UniqueConstraint('name', 'specimen_id','load_pattern','data','source_id'),)
     
 class Specimen(Base):
     __tablename__ = 'specimen'
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    experiment = relationship("Experiment", back_populates="specimen")
-    geometry_id = Column(Integer, ForeignKey('geometry.id'))
-    geometry = relationship("Geometry", back_populates="specimens")
-    material_id = Column(Integer, ForeignKey('material.id'))
-    material = relationship("Material", back_populates="specimens")
+    geometry_id = Column(Integer)
+    material_id = Column(Integer)
+    
+    
+    __table_args__ = (UniqueConstraint('name', 'geometry_id','material_id',),)
+    
 
 class Geometry(Base):
     __tablename__ = 'geometry'
     id = Column(Integer, primary_key=True)
-    specimens = relationship("Specimen", back_populates="geometry")
     
     section_type = Column(String)
     section_detail = Column(JSONB)
     length = Column(Float)
+    
+    __table_args__ = (UniqueConstraint('section_type', 'section_detail','length',),)
+    
     
 class Material(Base):
     __tablename__ = 'material'
     
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    specimens = relationship("Specimen", back_populates="material")
     
     detail = Column(JSONB)
+    
+    __table_args__ = (UniqueConstraint('name', 'detail',),)
+    
     
     
 class Source(Base):
@@ -52,7 +57,9 @@ class Source(Base):
     id = Column(Integer, primary_key=True)
     detail = Column(JSONB)
     
-    experiment = relationship("Experiment", back_populates="source")
+    
+    __table_args__ = (UniqueConstraint('detail',),)
+    
     
     
     
