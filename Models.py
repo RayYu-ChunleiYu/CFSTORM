@@ -6,7 +6,7 @@ Base = declarative_base()
 
 class Experiment(Base):
     __tablename__ = 'experiment'
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True,autoincrement=False)
     name = Column(String)
     specimen_id = Column(Integer)
     
@@ -19,7 +19,7 @@ class Experiment(Base):
     
 class Specimen(Base):
     __tablename__ = 'specimen'
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True,autoincrement=False)
     name = Column(String)
     geometry_id = Column(Integer)
     material_id = Column(Integer)
@@ -30,7 +30,7 @@ class Specimen(Base):
 
 class Geometry(Base):
     __tablename__ = 'geometry'
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True,autoincrement=False)
     
     section_type = Column(String)
     section_detail = Column(JSONB)
@@ -42,7 +42,7 @@ class Geometry(Base):
 class Material(Base):
     __tablename__ = 'material'
     
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True,autoincrement=False)
     name = Column(String)
     
     detail = Column(JSONB)
@@ -54,7 +54,7 @@ class Material(Base):
 class Source(Base):
     __tablename__ = 'source'
     
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True,autoincrement=False)
     detail = Column(JSONB)
     
     
