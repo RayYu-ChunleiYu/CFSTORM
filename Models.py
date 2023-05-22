@@ -4,6 +4,20 @@ from sqlalchemy.dialects.postgresql import JSONB
 
 Base = declarative_base()
 
+class Simulation(Base):
+    
+    id = Column(Integer, primary_key=True,autoincrement=False)
+    name = Column(String)
+    specimen_id = Column(Integer)
+    
+    load_pattern = Column(JSONB)
+    data = Column(JSONB)
+    
+    source_id = Column(Integer)
+    
+    __table_args__ = (UniqueConstraint('name', 'specimen_id','load_pattern','data','source_id'),)
+    
+    
 class Experiment(Base):
     __tablename__ = 'experiment'
     id = Column(Integer, primary_key=True,autoincrement=False)
