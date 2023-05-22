@@ -11,7 +11,8 @@ Detail can be seen in Models.py
 
 ## Database class 
 A Database that implement 
-- Database connection 
-- table create 
-- record add (Duplication check)
-- record remove 
+-[x]  Database connection 
+-[x] table create 
+-[x] record query
+-[x] record add (Duplication check)
+-[x] record remove 
