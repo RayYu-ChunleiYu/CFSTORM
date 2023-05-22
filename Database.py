@@ -1,4 +1,4 @@
-from Models import ExperimentORSimulation,Source,Specimen,Steel,Concrete,Geometry,Measurement,Base
+from .Models import ExperimentORSimulation,Source,Specimen,Steel,Concrete,Geometry,Measurement,Base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
