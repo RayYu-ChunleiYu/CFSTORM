@@ -16,6 +16,8 @@ class ExperimentORSimulation(Base):
     measurements_id = Column(ARRAY(Integer))
     
     source_id = Column(Integer)
+        
+    key_features = Column(JSONB)
     
     duplicate_check_keys = ['name','expOrsimu','specimen_id','load_pattern','measurements_id','source_id']
     
