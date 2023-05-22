@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, Float, String, ForeignKey,UniqueConstraint,Date
-from sqlalchemy.orm import relationship,declarative_base
+from sqlalchemy import Column, Integer, Float, String,UniqueConstraint,Date
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.dialects.postgresql import JSONB,ARRAY
 
 Base = declarative_base()
