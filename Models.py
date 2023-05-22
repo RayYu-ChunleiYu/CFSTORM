@@ -1,79 +1,106 @@
-from sqlalchemy import Column, Integer, Float, String, ForeignKey,UniqueConstraint
+from sqlalchemy import Column, Integer, Float, String, ForeignKey,UniqueConstraint,Date
 from sqlalchemy.orm import relationship,declarative_base
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import JSONB,ARRAY
 
 Base = declarative_base()
 
-class Simulation(Base):
-    
+class ExperimentORSimulation(Base):
+    __tablename__ = 'experimentOrsimulation'
     id = Column(Integer, primary_key=True,autoincrement=False)
     name = Column(String)
+    expOrsimu = Column(String)
     specimen_id = Column(Integer)
     
     load_pattern = Column(JSONB)
-    data = Column(JSONB)
+    
+    measurements_id = Column(ARRAY(Integer))
     
     source_id = Column(Integer)
     
-    __table_args__ = (UniqueConstraint('name', 'specimen_id','load_pattern','data','source_id'),)
-    
-    
-class Experiment(Base):
-    __tablename__ = 'experiment'
-    id = Column(Integer, primary_key=True,autoincrement=False)
-    name = Column(String)
-    specimen_id = Column(Integer)
-    
-    load_pattern = Column(JSONB)
-    data = Column(JSONB)
-    
-    source_id = Column(Integer)
-    
-    __table_args__ = (UniqueConstraint('name', 'specimen_id','load_pattern','data','source_id'),)
+    __table_args__ = (UniqueConstraint('name', 'specimen_id','load_pattern','measurements_id','source_id'),)
     
 class Specimen(Base):
     __tablename__ = 'specimen'
     id = Column(Integer, primary_key=True,autoincrement=False)
     name = Column(String)
+    expOrsimu = Column(String)
     geometry_id = Column(Integer)
-    material_id = Column(Integer)
+    steel_id = Column(Integer)
+    concrete_id = Column(Integer)
     
+    __table_args__ = (UniqueConstraint('name', 'geometry_id','steel_id','concrete_id'),)
     
-    __table_args__ = (UniqueConstraint('name', 'geometry_id','material_id',),)
-    
-
 class Geometry(Base):
     __tablename__ = 'geometry'
     id = Column(Integer, primary_key=True,autoincrement=False)
     
     section_type = Column(String)
-    section_detail = Column(JSONB)
+    section_width = Column(Float)
+    section_height = Column(Float)
+    section_diameter = Column(Float)
     length = Column(Float)
     
-    __table_args__ = (UniqueConstraint('section_type', 'section_detail','length',),)
+    __table_args__ = (UniqueConstraint('section_type', 'section_width','section_height','section_diameter','length',),)
     
-    
-class Material(Base):
-    __tablename__ = 'material'
+class Steel(Base):
+    __tablename__ = 'steel'
     
     id = Column(Integer, primary_key=True,autoincrement=False)
     name = Column(String)
+    yield_strength = Column(Float)
+    yield_strain = Column(Float)
+    elastic_modulus = Column(Float)
+    ultimate_strength = Column(Float)
+    ultimate_strain = Column(Float)
+    possion_ratio = Column(Float)
     
-    detail = Column(JSONB)
+    strain = Column(ARRAY(Float))
+    stress = Column(ARRAY(Float))
     
-    __table_args__ = (UniqueConstraint('name', 'detail',),)
+    __table_args__ = (UniqueConstraint('name', 'yield_strength','yield_strain','elastic_modulus','ultimate_strength','ultimate_strain',"strain","stress"),)
     
+
+class Concrete(Base):
+    __tablename__ = 'concrete'
     
+    id = Column(Integer, primary_key=True,autoincrement=False)
+    name = Column(String)
+    peak_strain = Column(Float)
+    peak_stress = Column(Float)
+    elastic_modulus = Column(Float)
+    possion_ratio = Column(Float)
     
+    mixture = Column(JSONB)
+    
+    strain = Column(ARRAY(Float))
+    stress = Column(ARRAY(Float))
+    
+    __table_args__ = (UniqueConstraint('name', 'peak_strain','peak_stress','elastic_modulus','possion_ratio',"mixture","strain","stress"),)
+
+
 class Source(Base):
     __tablename__ = 'source'
     
     id = Column(Integer, primary_key=True,autoincrement=False)
-    detail = Column(JSONB)
-    
+    author = Column(String)
+    expOrsimu = Column(String)
+    software = Column(String)
+    device = Column(String)
+    date = Column(Date)
     
     __table_args__ = (UniqueConstraint('detail',),)
     
     
+class Measurement(Base):
     
+    __tablename__ = 'measurement'
+    
+    id = Column(Integer, primary_key=True,autoincrement=False)
+    name = Column(String)
+    expOrsimu = Column(String)
+    physical_meaning = Column(String)
+    description = Column(String)
+    start_time = Column(Date)
+    frequency = Column(Integer)
+    data = Column(ARRAY(Float))
     
