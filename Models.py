@@ -88,7 +88,9 @@ class Source(Base):
     device = Column(String)
     date = Column(Date)
     
-    __table_args__ = (UniqueConstraint('detail',),)
+    __table_args__ = (
+        UniqueConstraint('author','expOrsimu','software','device','date'),
+        )
     
     
 class Measurement(Base):
@@ -103,4 +105,7 @@ class Measurement(Base):
     start_time = Column(Date)
     frequency = Column(Integer)
     data = Column(ARRAY(Float))
+    
+    __table_args__ = (UniqueConstraint('name','expOrsimu','physical_meaning','description','start_time','frequency'),)
+    
     

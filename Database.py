@@ -1,4 +1,4 @@
-from .Models import ExperimentORSimulation,Source,Specimen,Steel,Concrete,Geometry,Measurement,Base
+from Models import ExperimentORSimulation,Source,Specimen,Steel,Concrete,Geometry,Measurement,Base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
@@ -44,16 +44,19 @@ class Database:
         session = self.session
         instance_model = type(instance)
         
-        try:
-            session.add(instance)
-            session.commit()
-            instance_id = instance.id
-        except IntegrityError:
-            session.rollback()
-            existed_instance_properties = {i:j for i,j in instance.__dict__.items() if not i.startswith("_")}
+        existed_instance_properties = {i:j for i,j in instance.__dict__.items() if not i.startswith("_")}
+        if "id" in existed_instance_properties:
             del existed_instance_properties['id']
-            existed_instance = session.query(instance_model).filter_by(**existed_instance_properties).first()
+        existed_instance = session.query(instance_model).filter_by(**existed_instance_properties).first()
+        if existed_instance:
             instance_id = existed_instance.id
+        else:
+            existed_instance_num = session.query(instance_model).count()
+            instance_id = existed_instance_num+1
+            instance_replace = instance_model(id = instance_id, **existed_instance_properties)
+            session.add(instance_replace)
+            session.commit()
+    
             
         return instance_id
     

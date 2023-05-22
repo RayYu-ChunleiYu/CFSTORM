@@ -1,30 +1,16 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from Models import *
-from sqlalchemy.exc import IntegrityError
+from Database import Database,ExperimentORSimulation,Source,Specimen,Steel,Concrete,Geometry,Measurement
 
-engine = create_engine('postgresql://ray:cherish@localhost:5432/ORMTest')
-Base.metadata.create_all(engine)
-Session = sessionmaker(bind=engine)
+CFST_database = Database('ray','cherish','5432','ORMTest')
 
-session = Session()
-materials_num = len(session.query(Material).all())
-print(materials_num)
-steel = Material(id=materials_num+1,name='Steel',detail={'yield strength':325})
-concrete = Material(id=materials_num+1,name='Concret',detail={'yield strength':323333335})
+CFST_database.create_tables()
 
+source_1 = Source(author='radeddddyd',expOrsimu='exp')
 
-try :
-    session.add(concrete)
-    session.commit()
-except IntegrityError:
-    session.rollback()
-    existed_obj_properties = {i:j for i,j in concrete.__dict__.items() if not i.startswith("_")}
-    print(existed_obj_properties)
-    del existed_obj_properties['id']
-    existed_obj = session.query(Material).filter_by(**existed_obj_properties).first()
-    print(f"row exsited, the id is {existed_obj.id}")
+# steel_id = CFST_database.add_instance(Steel1)
+# source_1_id = CFST_database.add_instance(source_1)
 
-
-
-
+soruce_query = CFST_database.query(Source).filter_by(author="radeddddyd").all()
+print(soruce_query)
+CFST_database.remove_instance(soruce_query[0])
+soruce_query = CFST_database.query(Source).filter_by(author="radeddddyd").all()
+print(soruce_query)
