@@ -17,7 +17,8 @@ class ExperimentORSimulation(Base):
     
     source_id = Column(Integer)
     
-    __table_args__ = (UniqueConstraint('name', 'specimen_id','load_pattern','measurements_id','source_id'),)
+    duplicate_check_keys = ['name','expOrsimu','specimen_id','load_pattern','measurements_id','source_id']
+    
     
 class Specimen(Base):
     __tablename__ = 'specimen'
@@ -28,7 +29,7 @@ class Specimen(Base):
     steel_id = Column(Integer)
     concrete_id = Column(Integer)
     
-    __table_args__ = (UniqueConstraint('name', 'geometry_id','steel_id','concrete_id'),)
+    duplicate_check_keys = ['name','expOrsimu','geometry_id','steel_id','concrete_id']
     
 class Geometry(Base):
     __tablename__ = 'geometry'
@@ -40,7 +41,8 @@ class Geometry(Base):
     section_diameter = Column(Float)
     length = Column(Float)
     
-    __table_args__ = (UniqueConstraint('section_type', 'section_width','section_height','section_diameter','length',),)
+    duplicate_chek_keys = ['section_type','section_width','section_height','section_diameter','length']
+    
     
 class Steel(Base):
     __tablename__ = 'steel'
@@ -57,7 +59,7 @@ class Steel(Base):
     strain = Column(ARRAY(Float))
     stress = Column(ARRAY(Float))
     
-    __table_args__ = (UniqueConstraint('name', 'yield_strength','yield_strain','elastic_modulus','ultimate_strength','ultimate_strain',"strain","stress"),)
+    duplicate_check_keys = ['name','yield_strength','yield_strain','elastic_modulus','ultimate_strength','ultimate_strain','possion_ratio','strain','stress']
     
 
 class Concrete(Base):
@@ -75,7 +77,8 @@ class Concrete(Base):
     strain = Column(ARRAY(Float))
     stress = Column(ARRAY(Float))
     
-    __table_args__ = (UniqueConstraint('name', 'peak_strain','peak_stress','elastic_modulus','possion_ratio',"mixture","strain","stress"),)
+    duplicate_check_keys = ['name','peak_strain','peak_stress','elastic_modulus','possion_ratio','mixture','strain','stress']
+    
 
 
 class Source(Base):
@@ -88,9 +91,7 @@ class Source(Base):
     device = Column(String)
     date = Column(Date)
     
-    __table_args__ = (
-        UniqueConstraint('author','expOrsimu','software','device','date'),
-        )
+    duplicate_check_keys = ['author','expOrsimu','software','device','date']
     
     
 class Measurement(Base):
@@ -106,6 +107,7 @@ class Measurement(Base):
     frequency = Column(Integer)
     data = Column(ARRAY(Float))
     
-    __table_args__ = (UniqueConstraint('name','expOrsimu','physical_meaning','description','start_time','frequency'),)
+    duplicate_check_keys = ['name','expOrsimu','physical_meaning','description','start_time','frequency']
+    
     
     

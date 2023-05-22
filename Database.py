@@ -32,7 +32,7 @@ class Database:
         Base.metadata.create_all(self.engine)
         
         
-    def add_instance(self,instance):
+    def add_instance(self,instance,duplicate_check_keys:list[str]=None):
         """
         Adds a new instance to the database.
 
@@ -43,19 +43,20 @@ class Database:
         """
         session = self.session
         instance_model = type(instance)
-        
-        existed_instance_properties = {i:j for i,j in instance.__dict__.items() if not i.startswith("_")}
-        if "id" in existed_instance_properties:
-            del existed_instance_properties['id']
-        existed_instance = session.query(instance_model).filter_by(**existed_instance_properties).first()
+        if not duplicate_check_keys:
+            duplicate_check_keys = instance.duplicate_check_keys
+        instance_duplicate_check_properties = {i:instance.__dict__[i] for i in duplicate_check_keys if i in instance.__dict__}
+        existed_instance = session.query(instance_model).filter_by(**instance_duplicate_check_properties).first()
         if existed_instance:
             instance_id = existed_instance.id
+            print(f"Instance of {instance_model} already exists")
         else:
             existed_instance_num = session.query(instance_model).count()
             instance_id = existed_instance_num+1
-            instance_replace = instance_model(id = instance_id, **existed_instance_properties)
+            instance_replace = instance_model(id = instance_id, **instance_duplicate_check_properties)
             session.add(instance_replace)
             session.commit()
+            print(f"Instance of {instance_model} added")
     
             
         return instance_id
