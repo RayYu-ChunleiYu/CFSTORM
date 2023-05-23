@@ -1,7 +1,6 @@
-from .Models import ExperimentORSimulation,Source,Specimen,Steel,Concrete,Geometry,Measurement,Base
+from .Models import Base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.exc import IntegrityError
 
 
 class Database:
@@ -53,8 +52,8 @@ class Database:
         else:
             existed_instance_num = session.query(instance_model).count()
             instance_id = existed_instance_num+1
-            instance_replace = instance_model(id = instance_id, **instance_duplicate_check_properties)
-            session.add(instance_replace)
+            instance.id = instance_id
+            session.add(instance)
             session.commit()
             print(f"Instance of {instance_model} added")
     
@@ -79,6 +78,12 @@ class Database:
         :rtype: SQLAlchemy Query
         """
         return self.session.query(Model)
+
+    def commit(self):
+        """
+        Commits the current session.
+        """
+        return self.session.commit()
         
         
     
