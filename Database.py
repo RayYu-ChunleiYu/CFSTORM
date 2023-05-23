@@ -1,6 +1,8 @@
 from .Models import Base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from typing import List
+
 
 
 class Database:
@@ -31,7 +33,7 @@ class Database:
         Base.metadata.create_all(self.engine)
         
         
-    def add_instance(self,instance,duplicate_check_keys:list[str]=None):
+    def add_instance(self,instance,duplicate_check_keys:List[str]=None):
         """
         Adds a new instance to the database.
 
@@ -84,6 +86,25 @@ class Database:
         Commits the current session.
         """
         return self.session.commit()
+    
+    
+    def get_sub_instances(self,instance,sub_instance_class):
+        
+        sub_instance_class_string = sub_instance_class.__name__.lower()
+        print(sub_instance_class_string)
+        try:
+            sub_instance_ids = instance.__dict__[sub_instance_class_string+"_id"]
+        except KeyError:
+            sub_instance_ids = instance.__dict__[sub_instance_class_string+"s_id"]
+        if isinstance(sub_instance_ids,list):
+            sub_instance = self.session.query(sub_instance_class).filter(sub_instance_class.id.in_(sub_instance_ids)).all()
+        else:
+            sub_instance = self.session.query(sub_instance_class).filter(sub_instance_class.id==sub_instance_ids).first()
+            
+        return sub_instance
+        
+        
+        
         
         
     
