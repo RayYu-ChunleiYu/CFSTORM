@@ -88,10 +88,19 @@ class Database:
         return self.session.commit()
     
     
-    def get_sub_instances(self,instance,sub_instance_class):
-        
+    def get_sub_instance(self,instance,sub_instance_class):
+        """
+        Given an instance and the class of a sub-instance, return the sub-instance(s) associated with the instance.
+
+        Args:
+            instance (object): The instance to retrieve sub-instances from.
+            sub_instance_class (class): The class of the sub-instances.
+
+        Returns:
+            object or list of objects: The sub-instance(s) associated with the instance.
+        """
         sub_instance_class_string = sub_instance_class.__name__.lower()
-        print(sub_instance_class_string)
+        instance_id = instance.id
         try:
             sub_instance_ids = instance.__dict__[sub_instance_class_string+"_id"]
         except KeyError:
