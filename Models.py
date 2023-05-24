@@ -1,10 +1,17 @@
-from sqlalchemy import Column, Integer, Float, String,UniqueConstraint,Date
+from sqlalchemy import Column, Integer, Float, String,DateTime
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.dialects.postgresql import JSONB,ARRAY
 
 Base = declarative_base()
 
-class Experiment(Base):
+
+class MyMagic(Base):
+    __abstract__ = True
+
+    def __repr__(self):
+        return "<MyMagic(id='%s', name='%s')>" % (self.id, self.name)
+
+class Experiment(MyMagic):
     """
     Properties
     ----------
@@ -45,7 +52,7 @@ class Experiment(Base):
     duplicate_check_keys = ['name','expOrsimu','specimen_id','load_pattern',"load_pattern_details",'measurements_id','source_id',"key_features",'notation']
     
     
-class Specimen(Base):
+class Specimen(MyMagic):
     """
     Properties
     ----------
@@ -74,7 +81,7 @@ class Specimen(Base):
     
     duplicate_check_keys = ['name','geometry_id','steel_id','concrete_id','notation']
     
-class Geometry(Base):
+class Geometry(MyMagic):
     """
     Properties
     ----------
@@ -108,7 +115,7 @@ class Geometry(Base):
     duplicate_check_keys = ['section_type','section_width','section_height','section_diameter',"section_steel_tube_thickness",'length','notation']
     
     
-class Steel(Base):
+class Steel(MyMagic):
     """
     Properties
     ----------
@@ -155,7 +162,7 @@ class Steel(Base):
                             'notation']
     
 
-class Concrete(Base):
+class Concrete(MyMagic):
     """
     Properties
     ----------
@@ -203,7 +210,7 @@ class Concrete(Base):
     
 
 
-class Source(Base):
+class Source(MyMagic):
     """
     Properties
     ----------
@@ -222,20 +229,18 @@ class Source(Base):
     author = Column(String)
     software = Column(String)
     device = Column(String)
-    date = Column(Date)
+    date = Column(DateTime)
 
     notation = Column(String)
 
     duplicate_check_keys = ['author','software','device','date','notation']
     
     
-class Measurement(Base):
+class Measurement(MyMagic):
     """
     Properties
     ----------
     name = Column(String)
-
-    physical_meaning = Column(String)
 
     notation = Column(String)
 
@@ -243,7 +248,7 @@ class Measurement(Base):
 
     frequency = Column(Integer)
 
-    data = Column(ARRAY(Float))
+    data = Column(JSONB)
 
     """
     
@@ -251,16 +256,17 @@ class Measurement(Base):
     
     id = Column(Integer, primary_key=True,autoincrement=False)
     name = Column(String)
-    physical_meaning = Column(String)
+
+    start_time = Column(DateTime)
+    frequency = Column(Integer)
+    time = Column(ARRAY(DateTime))
+    data = Column(JSONB)
+
     notation = Column(String)
 
-    start_time = Column(Date)
-    frequency = Column(Integer)
-    time = Column(ARRAY(Date))
-    data = Column(ARRAY(Float))
+    duplicate_check_keys = ['name','start_time','frequency','notation']
 
-
-    duplicate_check_keys = ['name','physical_meaning','start_time','frequency','notation']
+    
     
     
     
