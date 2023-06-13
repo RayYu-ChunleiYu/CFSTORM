@@ -50,9 +50,13 @@ class Database:
         if existed_instance:
             instance_id = existed_instance.id
             print(f"Instance of {instance_model} already exists")
+            
         else:
-            existed_instance_num = session.query(instance_model).count()
-            instance_id = existed_instance_num+1
+            if "id" in instance.__dict__:
+                instance_id = instance.id
+            else:
+                existed_instance_num = session.query(instance_model).count()
+                instance_id = existed_instance_num+1
             instance.id = instance_id
             session.add(instance)
             session.commit()
