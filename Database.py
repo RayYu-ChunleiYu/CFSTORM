@@ -21,7 +21,6 @@ class Database:
         """
         self.engine = create_engine(f'postgresql://{username}:{password}@localhost:{port}/{database}')
         self.sessionmake = sessionmaker(bind=self.engine)
-        self.session = self.sessionmake()
         
     def create_tables(self):
         """
@@ -42,7 +41,7 @@ class Database:
         :return: The ID of the added instance.
         :rtype: int
         """
-        session = self.session
+        session = self.sessionmake()
         instance_model = type(instance)
         if not duplicate_check_keys:
             duplicate_check_keys = instance.duplicate_check_keys
@@ -59,14 +58,19 @@ class Database:
             session.commit()
             print(f"Instance of {instance_model} added")
     
-            
+        session.close()
+        
         return instance_id
     
     def remove_instance(self,instance):
         
-        session = self.session
-        session.delete(instance)
+        session = self.sessionmake()
+        instance_class = type(instance)
+        instance_id = instance.id
+        delete_instance = session.query(instance_class).filter_by(id=instance_id).first()
+        session.delete(delete_instance)
         session.commit()
+        session.close()
         
         
     def query(self,Model):
@@ -79,14 +83,34 @@ class Database:
         :return: A query object for the given model
         :rtype: SQLAlchemy Query
         """
-        return self.session.query(Model)
+        session = self.sessionmake()
+        result = session.query(Model)
+        session.close()
+        return result
 
-    def commit(self):
-        """
-        Commits the current session.
-        """
-        return self.session.commit()
+    # def commit(self):
+    #     """
+    #     Commits the current session.
+    #     """
+    #     return self.session.commit()
     
+    def update_instance(self,instance):
+        new_session = self.sessionmake()
+        instance_class = type(instance)
+        instance_properties_dict = {i:j for i,j in instance.__dict__.items() if not i.startswith("_")}
+        
+        
+        
+        # delete original instance 
+        original_instance = new_session.query(instance_class).filter_by(id=instance_properties_dict['id']).first()
+        new_session.close()
+        self.remove_instance(original_instance)
+        
+        # add new instance
+        new_instance = instance_class(**instance_properties_dict)
+        self.add_instance(new_instance)
+        
+        
     
     def get_sub_instance(self,instance,sub_instance_class):
         """
@@ -99,6 +123,7 @@ class Database:
         Returns:
             object or list of objects: The sub-instance(s) associated with the instance.
         """
+        new_session = self.sessionmake()
         sub_instance_class_string = sub_instance_class.__name__.lower()
         instance_id = instance.id
         try:
@@ -106,9 +131,10 @@ class Database:
         except KeyError:
             sub_instance_ids = instance.__dict__[sub_instance_class_string+"s_id"]
         if isinstance(sub_instance_ids,list):
-            sub_instance = self.session.query(sub_instance_class).filter(sub_instance_class.id.in_(sub_instance_ids)).all()
+            sub_instance = new_session.query(sub_instance_class).filter(sub_instance_class.id.in_(sub_instance_ids)).all()
         else:
-            sub_instance = self.session.query(sub_instance_class).filter(sub_instance_class.id==sub_instance_ids).first()
+            sub_instance = new_session.query(sub_instance_class).filter(sub_instance_class.id==sub_instance_ids).first()
+        new_session.close()
             
         return sub_instance
         
