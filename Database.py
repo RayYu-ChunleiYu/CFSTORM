@@ -99,13 +99,21 @@ class Database:
     #     return self.session.commit()
     
     def update_instance(self,instance):
-        new_session = self.sessionmake()
         instance_class = type(instance)
         instance_properties_dict = {i:j for i,j in instance.__dict__.items() if not i.startswith("_")}
         
+        # check if there is a duplicate instance 
+        new_session = self.sessionmake()
+        duplicate_instance = new_session.query(instance_class).filter_by(**instance_properties_dict).first()
+        print(duplicate_instance)
+        if duplicate_instance:
+            print(f"Instance of {instance_class} don't need to be updated")
+            new_session.close()
+            return 0
         
-        
+        new_session.close()
         # delete original instance 
+        new_session = self.sessionmake()
         original_instance = new_session.query(instance_class).filter_by(id=instance_properties_dict['id']).first()
         new_session.close()
         self.remove_instance(original_instance)
