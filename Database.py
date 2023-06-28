@@ -55,8 +55,9 @@ class Database:
             if "id" in instance.__dict__:
                 instance_id = instance.id
             else:
-                existed_instance_num = session.query(instance_model).count()
-                instance_id = existed_instance_num+1
+                existed_instances = session.query(instance_model)
+                existed_id = [i.id for i in existed_instances]
+                instance_id = max(existed_id)+1
             instance.id = instance_id
             session.add(instance)
             session.commit()
