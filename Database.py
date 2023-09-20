@@ -6,7 +6,10 @@ from typing import List
 
 
 class Database:
-    def __init__(self,username,password,port,database):
+    def __init__(self):
+        pass
+
+    def connect(self,username,password,port,database):
         """
         Initializes an instance of the Database with the given parameters.
         
@@ -21,6 +24,7 @@ class Database:
         """
         self.engine = create_engine(f'postgresql://{username}:{password}@localhost:{port}/{database}')
         self.sessionmake = sessionmaker(bind=self.engine)
+
         
     def create_tables(self):
         """

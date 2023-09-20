@@ -1,6 +1,7 @@
 from Database import Database,ExperimentORSimulation,Source,Specimen,Steel,Concrete,Geometry,Measurement
 
-CFST_database = Database('ray','cherish','5432','ORMTest')
+CFST_database = Database()
+CFST_database.connect('ray','cherish','5432','ORMTest')
 
 CFST_database.create_tables()
 
