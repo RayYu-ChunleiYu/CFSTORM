@@ -1,13 +1,13 @@
-from Database import Database,ExperimentORSimulation,Source,Specimen,Steel,Concrete,Geometry,Measurement
+from Database import Database,Source,Specimen,Steel,Concrete,Geometry,Measurement
 
 CFST_database = Database()
-CFST_database.connect('ray','cherish','5432','ORMTest')
+CFST_database.connect('ray','cherish','5432','HyperlandTest')
 
 CFST_database.create_tables()
 
-source_1 = Source(author='radedddddddyd',expOrsimu='edxp')
+source_1 = Source(author='radedddddddyd',software='edxp')
 
-source_id = CFST_database.add_instance(source_1,duplicate_check_keys=['expOrsimu'])
+source_id = CFST_database.add_instance(source_1)
 
 print(source_id)
 # steel_id = CFST_database.add_instance(Steel1)
