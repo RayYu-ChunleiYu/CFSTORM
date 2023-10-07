@@ -1,11 +1,13 @@
 # from .Models import Base
-from sqlalchemy import create_engine,NullPool
+import sqlalchemy.exc
+from sqlalchemy import create_engine, NullPool
 from sqlalchemy.orm import sessionmaker
-from typing import List,Union
+from typing import List, Union
 from .Models import *
 
+
 class SessionContext:
-    def __init__(self,database):
+    def __init__(self, database):
         self.database = database
 
     def __enter__(self):
@@ -27,7 +29,7 @@ class Database:
         self.is_engine_start = None
         self.is_session_make = None
 
-    def set_connection_param(self, username:str, password:str, port:str, database:str):
+    def set_connection_param(self, username: str, password: str, port: str, database: str):
         """
         Initializes an instance of the Database with the given parameters.
         
@@ -44,6 +46,14 @@ class Database:
         self.database_password = password
         self.database_port = port
         self.database_name = database
+
+    def connectivity_test(self, model):
+        with SessionContext(self) as session:
+            try:
+                result = session.query(model).all()
+            except sqlalchemy.exc.OperationalError:
+                result = 0
+        return result
 
     def engine_op(self, operation):
         if operation == 'start':
@@ -87,7 +97,7 @@ class Database:
         Base.metadata.create_all(self.engine)
         self.engine_op("dispose")
 
-    def add_instance(self, instance, duplicate_check_keys:Union[None, List[str]] = None):
+    def add_instance(self, instance, duplicate_check_keys: Union[None, List[str]] = None):
         """
         Adds a new instance to the database.
 
@@ -121,14 +131,14 @@ class Database:
                         existed_max_id = max(existed_id)
                         insert_middle = False
                         i = 1
-                        for i in range(1,existed_max_id):
+                        for i in range(1, existed_max_id):
                             if i not in existed_id:
                                 insert_middle = True
                                 break
                         if insert_middle:
                             instance_id = i
                         else:
-                            instance_id = existed_max_id+1
+                            instance_id = existed_max_id + 1
                 instance.id = instance_id
                 session.add(instance)
                 session.commit()
@@ -144,7 +154,7 @@ class Database:
             session.delete(delete_instance)
             session.commit()
 
-    def query(self, Model,kwargs=None):
+    def query(self, Model, kwargs=None):
         """
         Returns a query object for the given SQLAlchemy model.
 
