@@ -4,8 +4,18 @@ from sqlalchemy.orm import sessionmaker
 from typing import List,Union
 from Models import *
 
-class SessionEngineContext():
-    
+class SessionContext:
+    def __init__(self,database):
+        self.database = database
+
+    def __enter__(self):
+        self.database.create_session()
+        return self.database.session
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.database.dispose_session()
+
+
 
 
 class Database:
@@ -19,6 +29,8 @@ class Database:
 
         self.engine = None
         self.session = None
+        self.is_engine_start = None
+        self.is_session_make = None
 
     def connect(self, username:str, password:str, port:int, database:str):
         """
@@ -60,6 +72,7 @@ class Database:
         self.engine_op('start')
         self.session_maker = sessionmaker(bind=self.engine)
         self.session = self.session_maker()
+        self.is_session_make = True
 
     def dispose_session(self):
         self.session.close()
@@ -77,7 +90,6 @@ class Database:
         self.engine_op("dispose")
 
     def add_instance(self, instance, duplicate_check_keys:Union[None, List[str]] = None):
-        #TODO Session and engine close
         """
         Adds a new instance to the database.
 
@@ -86,47 +98,42 @@ class Database:
         :return: The ID of the added instance.
         :rtype: int
         """
-        self.create_session()
-        session = self.session
+        with SessionContext(self) as session:
+            instance_model = type(instance)
+            if not duplicate_check_keys:
+                duplicate_check_keys = instance.duplicate_check_keys
+            instance_duplicate_check_properties = {i: instance.__dict__[i] for i in duplicate_check_keys if
+                                                   i in instance.__dict__}
+            existed_instance = session.query(instance_model).filter_by(**instance_duplicate_check_properties).first()
+            if existed_instance:
+                instance_id = existed_instance.id
+                print(f"Instance of {instance_model} already exists")
 
-        instance_model = type(instance)
-        if not duplicate_check_keys:
-            duplicate_check_keys = instance.duplicate_check_keys
-        instance_duplicate_check_properties = {i: instance.__dict__[i] for i in duplicate_check_keys if
-                                               i in instance.__dict__}
-        existed_instance = session.query(instance_model).filter_by(**instance_duplicate_check_properties).first()
-        if existed_instance:
-            instance_id = existed_instance.id
-            print(f"Instance of {instance_model} already exists")
-
-        else:
-            if "id" in instance.__dict__:
-                instance_id = instance.id
             else:
-                existed_instances = session.query(instance_model)
-                existed_id = [i.id for i in existed_instances]
-                if not existed_id:
-                    instance_id = 1
+                if "id" in instance.__dict__:
+                    instance_id = instance.id
                 else:
-                # TODO Not very elegent, need found
-                    instance_id = max(existed_id) + 1
-            instance.id = instance_id
-            session.add(instance)
-            session.commit()
-            print(f"Instance of {instance_model} added")
-
-        self.dispose_session()
+                    existed_instances = session.query(instance_model)
+                    existed_id = [i.id for i in existed_instances]
+                    if not existed_id:
+                        instance_id = 1
+                    else:
+                    # TODO Not very elegent, need found
+                        instance_id = max(existed_id) + 1
+                instance.id = instance_id
+                session.add(instance)
+                session.commit()
+                print(f"Instance of {instance_model} added")
 
         return instance_id
 
     def remove_instance(self, instance):
-
-        instance_class = type(instance)
-        instance_id = instance.id
-        delete_instance = session.query(instance_class).filter_by(id=instance_id).first()
-        session.delete(delete_instance)
-        session.commit()
-        session.close()
+        with SessionContext(self) as session:
+            instance_class = type(instance)
+            instance_id = instance.id
+            delete_instance = session.query(instance_class).filter_by(id=instance_id).first()
+            session.delete(delete_instance)
+            session.commit()
 
     def query(self, Model):
         """
@@ -138,9 +145,8 @@ class Database:
         :return: A query object for the given model
         :rtype: SQLAlchemy Query
         """
-        session = self.session_maker()
-        result = session.query(Model)
-        session.close()
+        with SessionContext(self) as session:
+            result = session.query(Model)
         return result
 
     # def commit(self):
@@ -150,30 +156,27 @@ class Database:
     #     return self.session.commit()
 
     def update_instance(self, instance):
-        instance_class = type(instance)
-        instance_properties_dict = {i: j for i, j in instance.__dict__.items() if not i.startswith("_")}
+        with SessionContext(self) as session:
+            instance_class = type(instance)
+            instance_properties_dict = {i: j for i, j in instance.__dict__.items() if not i.startswith("_")}
 
-        # check if there is a duplicate instance 
-        new_session = self.session_maker()
-        duplicate_instance = new_session.query(instance_class).filter_by(**instance_properties_dict).first()
-        print(duplicate_instance)
-        if duplicate_instance:
-            print(f"Instance of {instance_class} don't need to be updated")
-            new_session.close()
-            return 0
+            # check if there is a duplicate instance
+            duplicate_instance = session.query(instance_class).filter_by(**instance_properties_dict).first()
+            print(duplicate_instance)
+            if duplicate_instance:
+                print(f"Instance of {instance_class} don't need to be updated")
 
-        new_session.close()
-        # delete original instance 
-        new_session = self.session_maker()
-        original_instance = new_session.query(instance_class).filter_by(id=instance_properties_dict['id']).first()
-        new_session.close()
-        self.remove_instance(original_instance)
+            # delete original instance
+            original_instance = session.query(instance_class).filter_by(id=instance_properties_dict['id']).first()
+            self.remove_instance(original_instance)
 
-        # add new instance
-        new_instance = instance_class(**instance_properties_dict)
-        self.add_instance(new_instance)
+            # add new instance
+            new_instance = instance_class(**instance_properties_dict)
+            self.add_instance(new_instance)
 
     def get_sub_instance(self, instance, sub_instance_class):
+
+
         """
         Given an instance and the class of a sub-instance, return the sub-instance(s) associated with the instance.
 
@@ -184,19 +187,17 @@ class Database:
         Returns:
             object or list of objects: The sub-instance(s) associated with the instance.
         """
-        new_session = self.session_maker()
-        sub_instance_class_string = sub_instance_class.__name__.lower()
-        instance_id = instance.id
-        try:
-            sub_instance_ids = instance.__dict__[sub_instance_class_string + "_id"]
-        except KeyError:
-            sub_instance_ids = instance.__dict__[sub_instance_class_string + "s_id"]
-        if isinstance(sub_instance_ids, list):
-            sub_instance = new_session.query(sub_instance_class).filter(
-                sub_instance_class.id.in_(sub_instance_ids)).all()
-        else:
-            sub_instance = new_session.query(sub_instance_class).filter(
-                sub_instance_class.id == sub_instance_ids).first()
-        new_session.close()
+        with SessionContext(self) as session:
+            sub_instance_class_string = sub_instance_class.__name__.lower()
+            try:
+                sub_instance_ids = instance.__dict__[sub_instance_class_string + "_id"]
+            except KeyError:
+                sub_instance_ids = instance.__dict__[sub_instance_class_string + "s_id"]
+            if isinstance(sub_instance_ids, list):
+                sub_instance = session.query(sub_instance_class).filter(
+                    sub_instance_class.id.in_(sub_instance_ids)).all()
+            else:
+                sub_instance = session.query(sub_instance_class).filter(
+                    sub_instance_class.id == sub_instance_ids).first()
 
         return sub_instance

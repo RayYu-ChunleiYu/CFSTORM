@@ -9,7 +9,10 @@ class MyMagic(Base):
     __abstract__ = True
 
     def __repr__(self):
-        return "<MyMagic(id='%s', name='%s')>" % (self.id, self.name)
+        if "name" in self.__dict__:
+            return "<MyMagic(id='%s', name='%s')>" % (self.id, self.name)
+        else:
+            return "<MyMagic(id='%s')>" % (self.id)
 
 class Experiment(MyMagic):
     """
