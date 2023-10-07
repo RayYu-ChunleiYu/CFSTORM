@@ -1,8 +1,8 @@
 # from .Models import Base
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine,NullPool
 from sqlalchemy.orm import sessionmaker
 from typing import List,Union
-from Models import *
+from .Models import *
 
 class SessionContext:
     def __init__(self,database):
@@ -27,7 +27,7 @@ class Database:
         self.is_engine_start = None
         self.is_session_make = None
 
-    def set_connect_param(self, username:str, password:str, port:str, database:str):
+    def set_connection_param(self, username:str, password:str, port:str, database:str):
         """
         Initializes an instance of the Database with the given parameters.
         
@@ -51,7 +51,9 @@ class Database:
                 pass
             else:
                 self.engine = create_engine(
-                    f'postgresql://{self.database_username}:{self.database_password}@localhost:{self.database_port}/{self.database_name}')
+                    f'postgresql://{self.database_username}:{self.database_password}@localhost:{self.database_port}/{self.database_name}',
+                    # poolclass=NullPool
+                )
                 self.is_engine_start = True
         elif operation == 'dispose':
             if self.is_engine_start:
@@ -142,7 +144,7 @@ class Database:
             session.delete(delete_instance)
             session.commit()
 
-    def query(self, Model):
+    def query(self, Model,kwargs=None):
         """
         Returns a query object for the given SQLAlchemy model.
 
@@ -154,6 +156,10 @@ class Database:
         """
         with SessionContext(self) as session:
             result = session.query(Model)
+            if kwargs:
+                result = result.filter_by(**kwargs).first()
+            else:
+                result = result.all()
         return result
 
     # def commit(self):
@@ -182,8 +188,6 @@ class Database:
             self.add_instance(new_instance)
 
     def get_sub_instance(self, instance, sub_instance_class):
-
-
         """
         Given an instance and the class of a sub-instance, return the sub-instance(s) associated with the instance.
 
