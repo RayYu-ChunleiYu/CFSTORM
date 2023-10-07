@@ -16,23 +16,18 @@ class SessionContext:
         self.database.dispose_session()
 
 
-
-
 class Database:
     def __init__(self):
-        self.session = None
         self.database_name = None
         self.database_port = None
         self.database_password = None
         self.database_username = None
         self.session_maker = None
 
-        self.engine = None
-        self.session = None
         self.is_engine_start = None
         self.is_session_make = None
 
-    def connect(self, username:str, password:str, port:int, database:str):
+    def set_connect_param(self, username:str, password:str, port:str, database:str):
         """
         Initializes an instance of the Database with the given parameters.
         
@@ -76,6 +71,7 @@ class Database:
 
     def dispose_session(self):
         self.session.close()
+        self.is_session_make = False
         self.engine_op('dispose')
 
     def create_tables(self):
@@ -100,8 +96,10 @@ class Database:
         """
         with SessionContext(self) as session:
             instance_model = type(instance)
-            if not duplicate_check_keys:
+            if duplicate_check_keys == None:
                 duplicate_check_keys = instance.duplicate_check_keys
+            else:
+                duplicate_check_keys = duplicate_check_keys
             instance_duplicate_check_properties = {i: instance.__dict__[i] for i in duplicate_check_keys if
                                                    i in instance.__dict__}
             existed_instance = session.query(instance_model).filter_by(**instance_duplicate_check_properties).first()
@@ -118,8 +116,17 @@ class Database:
                     if not existed_id:
                         instance_id = 1
                     else:
-                    # TODO Not very elegent, need found
-                        instance_id = max(existed_id) + 1
+                        existed_max_id = max(existed_id)
+                        insert_middle = False
+                        i = 1
+                        for i in range(1,existed_max_id):
+                            if i not in existed_id:
+                                insert_middle = True
+                                break
+                        if insert_middle:
+                            instance_id = i
+                        else:
+                            instance_id = existed_max_id+1
                 instance.id = instance_id
                 session.add(instance)
                 session.commit()
