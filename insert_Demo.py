@@ -1,7 +1,7 @@
-from Database import Database,Source,Specimen,Steel,Concrete,Geometry,Measurement
+from Database import Database, Source
 
 CFST_database = Database()
-CFST_database.connect('ray','cherish','5432','HyperlandTest')
+CFST_database.connect('ray', 'cherish', '5432', 'HyperlandTest')
 
 # CFST_database.create_tables()
 

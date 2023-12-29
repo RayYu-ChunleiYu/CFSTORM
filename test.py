@@ -1,8 +1,6 @@
 import unittest
+from Models import Experiment
 from Database import Database
-from Models import *
-
-from Database import Database, Source, Specimen, Steel, Concrete, Geometry, Measurement
 
 
 class TestDatabaseBasicMethod(unittest.TestCase):
@@ -18,7 +16,6 @@ class TestDatabaseBasicMethod(unittest.TestCase):
     def test_add_instance(self):
         experiment = Experiment(name='ExperimentAddTest')
         self.database.add_instance(experiment)
-        experiment_query = self.database.query(Experiment).filter_by(name="ExperimentAddTest").first()
 
     def test_remove_instance(self):
         experiment_query = self.database.query(Experiment).filter_by(name="ExperimentAddTest").first()

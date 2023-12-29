@@ -1,9 +1,9 @@
 # from .Models import Base
 import sqlalchemy.exc
-from sqlalchemy import create_engine, NullPool
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from typing import List, Union
-from .Models import *
+from .Models import Base
 
 
 class SessionContext:
@@ -32,7 +32,7 @@ class Database:
     def set_connection_param(self, username: str, password: str, port: str, database: str):
         """
         Initializes an instance of the Database with the given parameters.
-        
+
         :param username: The username for accessing the database.
         :type username: str
         :param password: The password for accessing the database.
@@ -61,7 +61,9 @@ class Database:
                 pass
             else:
                 self.engine = create_engine(
-                    f'postgresql://{self.database_username}:{self.database_password}@localhost:{self.database_port}/{self.database_name}',
+                    f'postgresql://{self.database_username}:{self.database_password}\
+                    @localhost:{self.database_port}\
+                    /{self.database_name}',
                     # poolclass=NullPool
                 )
                 self.is_engine_start = True
@@ -108,7 +110,7 @@ class Database:
         """
         with SessionContext(self) as session:
             instance_model = type(instance)
-            if duplicate_check_keys == None:
+            if duplicate_check_keys is None:
                 duplicate_check_keys = instance.duplicate_check_keys
             else:
                 duplicate_check_keys = duplicate_check_keys
