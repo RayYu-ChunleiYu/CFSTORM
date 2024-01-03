@@ -60,10 +60,13 @@ class Database:
             if self.is_engine_start:
                 pass
             else:
+                d_u_n = self.database_username
+                d_u_p = self.database_password
+                port = self.database_port
+                d_n = self.database_name
+                
                 self.engine = create_engine(
-                    f'postgresql://{self.database_username}:{self.database_password}\
-                    @localhost:{self.database_port}\
-                    /{self.database_name}',
+                    f"postgresql://{d_u_n}:{d_u_p}@localhost:{port}/{d_n}",
                     # poolclass=NullPool
                 )
                 self.is_engine_start = True
