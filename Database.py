@@ -64,7 +64,6 @@ class Database:
                 d_u_p = self.database_password
                 port = self.database_port
                 d_n = self.database_name
-                
                 self.engine = create_engine(
                     f"postgresql://{d_u_n}:{d_u_p}@localhost:{port}/{d_n}",
                     # poolclass=NullPool
